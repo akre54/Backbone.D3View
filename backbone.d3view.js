@@ -39,7 +39,7 @@
     },
 
     $: function(selector) {
-      return this.d3el.selectAll(selector)[0];
+      return this.el.querySelectorAll(selector);
     },
 
     _removeElement: function() {
