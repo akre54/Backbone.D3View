@@ -27,8 +27,11 @@
 
   Backbone.D3ViewMixin = {
 
-    // Store
+    // Store eventsMap for undelegation
     _eventsMap: null,
+
+    // A reference to the d3 selection backing the view
+    d3el: null,
 
     constructor: function() {
       this._eventsMap = {};
