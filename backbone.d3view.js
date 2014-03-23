@@ -112,8 +112,7 @@
             (selector ? item.selector === selector : true);
         })
         .forEach(function(item) {
-          var el = (selector || (!selector && item.selector)) ? this.d3el.selectAll(selector || item.selector) : this.d3el;
-          el.on(eventName + item.namespace, null);
+          removeEvent(this.d3el, eventName, selector || item.selector, item.namespace);
           handlers.splice(_.indexOf(handlers, item), 1);
         }, this);
     },
@@ -121,15 +120,24 @@
     undelegateEvents: function() {
       if (!this.d3el) return;
 
-      _.each(this._eventsMap, function(handlers, eventName) {
-        _.each(handlers, function(item) {
-          this.undelegate(eventName, item.selector)
-        }, this);
-      }, this);
+      for (var eventName in this._eventsMap) {
+        var handlers = this._eventsMap[eventName];
+        for (var i = 0, len = handlers.length; i < len; i++) {
+          var item = handlers[i];
+          removeEvent(this.d3el, eventName, item.selector, item.namespace);
+        }
+      }
+
       this._eventsMap = {};
       return this;
     }
   };
+
+  // Avoid a costly loop through handlers for `undelegateEvents`
+  var removeEvent = function(d3el, eventName, selector, namespace) {
+    var el = selector ? d3el.selectAll(selector) : d3el;
+    el.on(eventName + namespace, null);
+  }
 
   Backbone.D3View = Backbone.View.extend(Backbone.D3ViewMixin);
 
