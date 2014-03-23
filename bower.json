@@ -1,0 +1,22 @@
+{
+  "name": "backbone.d3view",
+  "version": "0.1.0",
+  "homepage": "https://github.com/akre54/backbone.d3view",
+  "author": "Adam Krebs <amk528@cs.nyu.edu>",
+  "description": "A Backbone View powered by D3 DOM wrapper",
+  "main": "backbone.d3view.js",
+  "keywords": [
+    "Backbone",
+    "view",
+    "plugin",
+    "D3",
+    "DOM",
+    "change"
+  ],
+  "dependencies": {
+    "d3": "3.x.x",
+    "underscore": "*",
+    "backbone": "*"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "backbone.d3view",
+  "version": "0.1.0",
+  "author": "Adam Krebs <amk528@cs.nyu.edu>",
+  "description": "A Backbone View powered by D3 DOM wrapper",
+  "licence": "MIT",
+  "main": "backbone.d3view",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akre54/backbone.d3view"
+  },
+  "dependencies": {
+    "d3": "3.x.x",
+    "underscore": "*"
+  },
+  "peerDependencies": {
+    "backbone": "git://github.com/akre54/backbone#view-native-hooks"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*"
+  },
+  "engines": {
+    "node": "*",
+    "npm": "*"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
+  }
+}
