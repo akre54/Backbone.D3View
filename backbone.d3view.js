@@ -42,6 +42,10 @@
       return this.el.querySelectorAll(selector);
     },
 
+    $$: function(selector) {
+      return this.d3el.selectAll(selector);
+    },
+
     _removeElement: function() {
       this.undelegateEvents();
       this.d3el.remove();

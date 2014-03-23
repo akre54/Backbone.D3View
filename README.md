@@ -47,7 +47,7 @@ view.undelegate('click', view.clickHandler);
 view.undelegate('click');
 ```
 
-View-scoped element finding:
+View-scoped element finding that returns a NodeList:
 ```js
 view.$('.box')[0].classList.remove('active'); // for one matched element
 // for multiple matched elements
@@ -57,18 +57,29 @@ _.each(view.$('.sidebar'), function(el) {
 var fields = _.invoke(view.$('.field'), 'innerHTML');
 ```
 
-Direct reference to the D3 selection:
+View-scoped element finding that returns a d3 selector:
 ```js
 var Graph = Backbone.D3View.extend({
   tagName: 'svg',
 
   render: function() {
-    var node = this.d3el.selectAll(".node")
+    var node = this.$$(".node")
       .data(bubble.nodes(classes(root))
       .filter(function(d) { return !d.children; }))
     .enter().append("g")
       .attr("class", "node")
       .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  }
+});
+```
+
+Direct reference to the D3 selection:
+```js
+var Graph = Backbone.D3View.extend({
+  el: '#graph',
+
+  initialize: function() {
+    this.d3el.classed({'foo': true, 'bar': false});
   }
 });
 ```
