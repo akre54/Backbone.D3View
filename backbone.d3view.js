@@ -8,7 +8,7 @@
 
 (function (factory) {
   if (typeof define === 'function' && define.amd) { define(['backbone', 'd3'], factory);
-  } else if (typeof exports === 'object') { factory(require('backbone'), require('d3'));
+  } else if (typeof exports === 'object') { module.exports = factory(require('backbone'), require('d3'));
   } else { factory(Backbone, d3); }
 }(function (Backbone, d3) {
 
@@ -49,6 +49,12 @@
     _removeElement: function() {
       this.undelegateEvents();
       this.d3el.remove();
+    },
+
+    _createElement: function(tagName) {
+      return tagName === 'svg' ?
+         document.createElementNS('http://www.w3.org/2000/svg', tagName) :
+         document.createElement(tagName);
     },
 
     _setElement: function(element) {

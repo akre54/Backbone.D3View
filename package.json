@@ -10,21 +10,22 @@
     "url": "https://github.com/akre54/backbone.d3view"
   },
   "dependencies": {
-    "d3": "3.x.x",
     "underscore": "*"
   },
   "peerDependencies": {
-    "backbone": "git://github.com/akre54/backbone#view-native-hooks"
+    "d3": "3.x.x"
   },
   "devDependencies": {
     "mocha": "*",
-    "chai": "*"
+    "chai": "*",
+    "jsdom": "~0.10.2",
+    "backbone": "git://github.com/jashkenas/backbone#7287d0b3f3cd684d7624a4bf53a11c429f282b41"
   },
   "engines": {
     "node": "*",
     "npm": "*"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha"
+    "test": "phantomjs test/vendor/runner.js test/index.html?noglobals=true && mocha"
   }
 }

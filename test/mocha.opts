@@ -1,3 +1,6 @@
+test/test
 --reporter spec
+--check-leaks
 --growl
 --colors
+--require test/helpers/test-helpers

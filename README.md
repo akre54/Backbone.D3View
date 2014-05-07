@@ -88,6 +88,11 @@ Requirements:
 -------------
 * A browser that [supports D3](https://github.com/mbostock/d3/wiki#browser-support).
 
+Running tests:
+--------------
+The test suite includes the original Backbone.View QUnit conformance tests as
+well as a suite of Backbone.D3View-specific tests in mocha.
+
 Notes:
 ------
 * The `$el` property no longer exists on Views. Use `el` instead. You may also
