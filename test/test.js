@@ -23,7 +23,7 @@ describe('Backbone.D3View', function() {
 
     it('creates with no namespace if not passed svg', function() {
       var view = new D3View;
-      expect(view.el.namespaceURI).to.be.undefined;
+      expect(view.el.namespaceURI).to.be.null;
     });
   });
 

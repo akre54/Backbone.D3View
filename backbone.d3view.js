@@ -22,21 +22,13 @@
   // Events need a unique id for attaching multiple events of the same type.
   var uniqueId = 0;
 
-  // Cache Backbone.View for use in `constructor`.
-  var BBView = Backbone.View;
+  // Store eventsMap for undelegation
+  var _eventsMap = {};
 
   Backbone.D3ViewMixin = {
 
-    // Store eventsMap for undelegation
-    _eventsMap: null,
-
     // A reference to the d3 selection backing the view
     d3el: null,
-
-    constructor: function() {
-      this._eventsMap = {};
-      BBView.apply(this, arguments);
-    },
 
     $: function(selector) {
       return this.el.querySelectorAll(selector);
@@ -48,6 +40,7 @@
 
     _removeElement: function() {
       this.undelegateEvents();
+      delete _eventsMap[this.cid];
       this.d3el.remove();
     },
 
@@ -92,7 +85,10 @@
       // d3 needs `uniqueId` to delegate more than one listener per event type.
       var namespace = '.' + uniqueId++;
 
-      (this._eventsMap[eventName] || (this._eventsMap[eventName] = [])).push({
+      var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {}),
+          handlers = map[eventName] || (map[eventName] = []);
+
+      handlers.push({
         selector: selector,
         listener: listener,
         namespace: namespace
@@ -114,7 +110,8 @@
         selector = null;
       }
 
-      var handlers = this._eventsMap[eventName];
+      var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {}),
+          handlers = map[eventName];
 
       _(handlers).chain()
         .filter(function(item) {
@@ -130,15 +127,17 @@
     undelegateEvents: function() {
       if (!this.d3el) return;
 
-      for (var eventName in this._eventsMap) {
-        var handlers = this._eventsMap[eventName];
+      var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {});
+
+      for (var eventName in map) {
+        var handlers = map[eventName] || [];
         for (var i = 0, len = handlers.length; i < len; i++) {
           var item = handlers[i];
           removeEvent(this.d3el, eventName, item.selector, item.namespace);
         }
       }
 
-      this._eventsMap = {};
+      _eventsMap[this.cid] = {};
       return this;
     }
   };
