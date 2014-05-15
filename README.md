@@ -24,7 +24,7 @@ As an alternative, you may extend an existing View's prototype to use D3
 methods, or even replace Backbone.View itself:
 
 ```js
-Backbone.View = Backbone.D3ViewMixin;
+_.extend(Backbone.View.prototype, Backbone.D3ViewMixin);
 
 var MyView = Backbone.View.extend({
   initialize: function(options) {
