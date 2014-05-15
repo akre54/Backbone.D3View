@@ -9,7 +9,7 @@
       other     : 'non-special-option'
     });
     equal(view.el.id, 'test-view');
-    equal(view.el.className, 'test-view');
+    equal(view.el.className.baseVal, 'test-view');
     equal(view.el.other, void 0);
   });
 
@@ -184,7 +184,7 @@
       tagName: 'span'
     });
 
-    equal(new View().el.tagName, 'SPAN');
+    equal(new View().el.tagName, 'span');
   });
 
   test("_ensureElement with DOM node el", 1, function() {
@@ -224,7 +224,7 @@
       }
     });
 
-    strictEqual(new View().el.className, 'className');
+    strictEqual(new View().el.className.baseVal, 'className');
     strictEqual(new View().el.id, 'id');
   });
 
@@ -236,7 +236,7 @@
       }
     });
 
-    strictEqual(new View().el.className, 'class');
+    strictEqual(new View().el.className.baseVal, 'class');
     strictEqual(new View().el.id, 'id');
   });
 
@@ -247,7 +247,7 @@
       }
     });
 
-    strictEqual(new View().el.className, 'dynamic');
+    strictEqual(new View().el.className.baseVal, 'dynamic');
   });
 
   test("multiple views per element", 3, function() {

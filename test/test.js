@@ -15,14 +15,15 @@ describe('Backbone.D3View', function() {
     expect(view.el.tagName.toLowerCase()).to.equal('div');
   });
 
-  describe('createElement with namespaces', function() {
-    it('creates with a namespace if passed an svg', function() {
+  describe('namespaces', function() {
+    it('creates an element with a namespace if one is set (default)', function() {
       var view = new D3View({tagName: 'svg'});
       expect(view.el.namespaceURI).to.equal('http://www.w3.org/2000/svg');
     });
 
-    it('creates with no namespace if not passed svg', function() {
-      var view = new D3View;
+    it('creates an element with no namespace if one is not set', function() {
+      var NoNSView = D3View.extend({namespace: null});
+      var view = new NoNSView;
       expect(view.el.namespaceURI).to.be.null;
     });
   });

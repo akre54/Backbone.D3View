@@ -22,13 +22,15 @@
   // Events need a unique id for attaching multiple events of the same type.
   var uniqueId = 0;
 
-  // Store eventsMap for undelegation
+  // Store eventsMap for undelegation.
   var _eventsMap = {};
 
   Backbone.D3ViewMixin = {
 
-    // A reference to the d3 selection backing the view
+    // A reference to the d3 selection backing the view.
     d3el: null,
+
+    namespace: 'http://www.w3.org/2000/svg',
 
     $: function(selector) {
       return this.el.querySelectorAll(selector);
@@ -45,8 +47,9 @@
     },
 
     _createElement: function(tagName) {
-      return tagName === 'svg' ?
-         document.createElementNS('http://www.w3.org/2000/svg', tagName) :
+      var ns = _.result(this, 'namespace');
+      return ns ?
+         document.createElementNS(ns, tagName) :
          document.createElement(tagName);
     },
 
@@ -88,17 +91,13 @@
       var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {}),
           handlers = map[eventName] || (map[eventName] = []);
 
-      handlers.push({
-        selector: selector,
-        listener: listener,
-        namespace: namespace
-      });
+      handlers.push({selector: selector, listener: listener, namespace: namespace});
 
       // The `event` object is stored in `d3.event` but Backbone expects it as
       // the first argument to the listener.
       el.on(eventName + namespace, function() {
         var args = slice.call(arguments);
-        args.unshift(d3.event)
+        args.unshift(d3.event);
         listener.apply(this, args);
       });
       return this;
@@ -114,13 +113,13 @@
           handlers = map[eventName];
 
       _(handlers).chain()
-        .filter(function(item) {
-          return (listener ? item.listener === listener : true) &&
-            (selector ? item.selector === selector : true);
+        .filter(function(handler) {
+          return (listener ? handler.listener === listener : true) &&
+            (selector ? handler.selector === selector : true);
         })
-        .forEach(function(item) {
-          removeEvent(this.d3el, eventName, selector || item.selector, item.namespace);
-          handlers.splice(_.indexOf(handlers, item), 1);
+        .forEach(function(handler) {
+          removeEvent(this.d3el, eventName, selector || handler.selector, handler.namespace);
+          handlers.splice(_.indexOf(handlers, handler), 1);
         }, this);
     },
 
@@ -130,11 +129,9 @@
       var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {});
 
       for (var eventName in map) {
-        var handlers = map[eventName] || [];
-        for (var i = 0, len = handlers.length; i < len; i++) {
-          var item = handlers[i];
-          removeEvent(this.d3el, eventName, item.selector, item.namespace);
-        }
+        _.each(map[eventName], function(handler) {
+          removeEvent(this.d3el, eventName, handler.selector, handler.namespace);
+        }, this);
       }
 
       _eventsMap[this.cid] = {};
@@ -142,7 +139,7 @@
     }
   };
 
-  // Avoid a costly loop through handlers for `undelegateEvents`
+  // Avoid a costly loop through handlers for `undelegateEvents`.
   var removeEvent = function(d3el, eventName, selector, namespace) {
     var el = selector ? d3el.selectAll(selector) : d3el;
     el.on(eventName + namespace, null);
