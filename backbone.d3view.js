@@ -30,7 +30,7 @@
     // A reference to the d3 selection backing the view.
     d3el: null,
 
-    namespace: 'http://www.w3.org/2000/svg',
+    namespace: d3.ns.prefix.svg,
 
     $: function(selector) {
       return this.el.querySelectorAll(selector);
