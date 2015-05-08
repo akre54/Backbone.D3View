@@ -5,6 +5,11 @@ Backbone.D3View
 A drop-in replacement for Backbone.View that uses only D3 DOM methods for
 element selection and event delegation. It has no dependency on jQuery.
 
+NOTE: Backbone.D3View relies on edge (master branch) version of Backbone.
+Backbone 1.1.2 is not compatible with Backbone.D3View.
+We will hopefully release a new compatible version soon, but in the meantime 
+please use the master branch or point your package manager to use a recent
+git SHA.
 
 To Use:
 -------
