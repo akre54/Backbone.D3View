@@ -1,7 +1,7 @@
-// Backbone.D3View.js 0.1.0
+// Backbone.D3View.js 0.2.0
 // ---------------
 
-//     (c) 2014 Adam Krebs
+//     (c) 2015 Adam Krebs
 //     Backbone.D3View may be freely distributed under the MIT license.
 //     For all details and documentation:
 //     https://github.com/akre54/Backbone.D3View
