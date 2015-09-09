@@ -94,9 +94,6 @@
         selector = null;
       }
 
-      var map = this._eventHandlers || (this._eventHandlers = {}),
-          handlers = map[eventName] || (map[eventName] = []);
-
       var view = this;
       var wrapped = function(event){
         var node = event.target,
@@ -122,45 +119,46 @@
         d3.event = o;
       };
 
-      handlers.push({selector: selector, listener: listener, wrapped: wrapped});
+      var handlers = this._domEvents || (this._domEvents = []);
+      handlers.push({eventName: eventName, selector: selector, listener: listener, wrapped: wrapped});
 
       el.addEventListener(eventName, wrapped, false);
       return this;
     },
 
     undelegate: function(eventName, selector, listener) {
-      if (!this._eventHandlers) return;
+      if (!this._domEvents) return;
 
       if (typeof selector !== 'string') {
         listener = selector;
         selector = null;
       }
 
-      var handlers = this._eventHandlers[eventName];
-      var el = this.el;
+      var handlers = this._domEvents.slice();
+      var i = handlers.length;
+      while (i--) {
+        var handler = handlers[i];
 
-      handlers
-        .filter(function(handler) {
-          return (listener ? handler.listener === listener : true) &&
+        var match = handler.eventName === eventName &&
+            (listener ? handler.listener === listener : true) &&
             (selector ? handler.selector === selector : true);
-        })
-        .forEach(function(handler) {
-          el.removeEventListener(eventName, handler.wrapped, false);
-          handlers.splice(handlers.indexOf(handler), 1);
-        });
+
+        if (!match) continue;
+
+        this.el.removeEventListener(eventName, handler.wrapped, false);
+        this._domEvents.splice(i, 1);
+      }
     },
 
     undelegateEvents: function() {
-      var map = this._eventHandlers, el = this.el;
-      if (!el || !map) return;
+      var handlers = this._domEvents, el = this.el;
+      if (!el || !handlers) return;
 
-      Object.keys(map).forEach(function(eventName) {
-        map[eventName].forEach(function(handler) {
-          el.removeEventListener(eventName, handler.wrapped, false);
-        });
+      handlers.forEach(function(handler) {
+        el.removeEventListener(handler.eventName, handler.wrapped, false);
       });
 
-      this._eventHandlers = {};
+      this._domEvents = [];
       return this;
     }
   };
