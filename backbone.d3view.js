@@ -7,10 +7,10 @@
 //     https://github.com/akre54/Backbone.D3View
 
 (function (factory) {
-  if (typeof define === 'function' && define.amd) { define(['backbone', 'd3'], factory);
-  } else if (typeof exports === 'object') { module.exports = factory(require('backbone'), require('d3'));
-  } else { factory(Backbone, d3); }
-}(function (Backbone, d3) {
+  if (typeof define === 'function' && define.amd) { define(['backbone', 'd3', '_'], factory);
+  } else if (typeof exports === 'object') { module.exports = factory(require('backbone'), require('d3'), require('underscore'));
+  } else { factory(Backbone, d3, _); }
+}(function (Backbone, d3, _) {
 
   // Cached regex to match an opening '<' of an HTML tag, possibly left-padded
   // with whitespace.
