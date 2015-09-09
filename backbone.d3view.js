@@ -165,12 +165,6 @@
     }
   };
 
-  // Avoid a costly loop through handlers for `undelegateEvents`.
-  var removeEvent = function(d3el, eventName, selector) {
-    var el = selector ? d3el.selectAll(selector) : d3el;
-    el.on(eventName, null);
-  }
-
   Backbone.D3View = Backbone.View.extend(Backbone.D3ViewMixin);
 
   return Backbone.D3View;
