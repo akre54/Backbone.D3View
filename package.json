@@ -10,7 +10,6 @@
     "url": "https://github.com/akre54/backbone.d3view"
   },
   "dependencies": {
-    "underscore": "*"
   },
   "peerDependencies": {
     "d3": "3.x.x"
