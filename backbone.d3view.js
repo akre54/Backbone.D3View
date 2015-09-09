@@ -22,8 +22,21 @@
   // Events need a unique id for attaching multiple events of the same type.
   var uniqueId = 0;
 
-  // Store eventsMap for undelegation.
-  var _eventsMap = {};
+  var ElementProto = (typeof Element !== 'undefined' && Element.prototype) || {};
+  var matchesSelector = ElementProto.matches ||
+    ElementProto.webkitMatchesSelector ||
+    ElementProto.mozMatchesSelector ||
+    ElementProto.msMatchesSelector ||
+    ElementProto.oMatchesSelector ||
+    // Make our own `Element#matches` for IE8
+    function(selector) {
+      // Use querySelectorAll to find all elements matching the selector,
+      // then check if the given element is included in that list.
+      // Executing the query on the parentNode reduces the resulting nodeList,
+      // (document doesn't have a parentNode).
+      var nodeList = (this.parentNode || document).querySelectorAll(selector) || [];
+      return ~indexOf(nodeList, this);
+    };
 
   Backbone.D3ViewMixin = {
 
@@ -42,12 +55,11 @@
 
     _removeElement: function() {
       this.undelegateEvents();
-      delete _eventsMap[this.cid];
       this.d3el.remove();
     },
 
     _createElement: function(tagName) {
-      var ns = _.result(this, 'namespace');
+      var ns = typeof this.namespace === 'function' ? this.namespace() : this.namespace;
       return ns ?
          document.createElementNS(ns, tagName) :
          document.createElement(tagName);
@@ -75,74 +87,88 @@
 
     // `delegate` supports two- and three-arg forms. The `selector` is optional.
     delegate: function(eventName, selector, listener) {
-      var el;
+      var el = this.el;
 
-      if (typeof selector === 'string') {
-        el = selector === '' ? this.d3el : this.d3el.selectAll(selector);
-      } else {
-        el = this.d3el;
+      if (listener === undefined) {
         listener = selector;
         selector = null;
       }
 
-      // d3 needs `uniqueId` to delegate more than one listener per event type.
-      var namespace = '.' + uniqueId++;
-
-      var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {}),
+      var map = this._eventHandlers || (this._eventHandlers = {}),
           handlers = map[eventName] || (map[eventName] = []);
 
-      handlers.push({selector: selector, listener: listener, namespace: namespace});
+      var view = this;
+      var wrapped = function(event){
+        var node = event.target,
+            idx = 0,
+            o = d3.event;
 
-      // The `event` object is stored in `d3.event` but Backbone expects it as
-      // the first argument to the listener.
-      el.on(eventName + namespace, function() {
-        var args = slice.call(arguments);
-        args.unshift(d3.event);
-        listener.apply(this, args);
-      });
+        d3.event = event;
+
+        // The `event` object is stored in `d3.event` but Backbone expects it as
+        // the first argument to the listener.
+        if (!selector) {
+          listener.call(view, d3.event, node.__data__, idx++);
+          d3.event = o;
+          return;
+        }
+
+        while (node && node !== el){
+          if (matchesSelector.call(node, selector)) {
+            listener.call(view, d3.event, node.__data__, idx++);
+          }
+          node = node.parentNode;
+        }
+        d3.event = o;
+      };
+
+      handlers.push({selector: selector, listener: listener, wrapped: wrapped});
+
+      el.addEventListener(eventName, wrapped, false);
       return this;
     },
 
     undelegate: function(eventName, selector, listener) {
+      if (!this._eventHandlers) return;
+
       if (typeof selector !== 'string') {
         listener = selector;
         selector = null;
       }
 
-      var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {}),
-          handlers = map[eventName];
+      var handlers = this._eventHandlers[eventName];
+      var el = this.el;
 
-      _(handlers).chain()
+      handlers
         .filter(function(handler) {
           return (listener ? handler.listener === listener : true) &&
             (selector ? handler.selector === selector : true);
         })
         .forEach(function(handler) {
-          removeEvent(this.d3el, eventName, selector || handler.selector, handler.namespace);
-          handlers.splice(_.indexOf(handlers, handler), 1);
-        }, this);
+          el.removeEventListener(eventName, handler.wrapped, false);
+          handlers.splice(handlers.indexOf(handler), 1);
+        });
     },
 
     undelegateEvents: function() {
-      if (!this.d3el) return;
+      var map = this._eventHandlers, el = this.el;
+      if (!el || !map) return;
 
-      var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {});
+      Object.keys(map).forEach(function(eventName) {
+        map[eventName].forEach(function(handler) {
+          el.removeEventListener(eventName, handler.wrapped, false);
+        });
+      });
 
-      for (var eventName in map) {
-        _.each(map[eventName], function(handler) {
-          removeEvent(this.d3el, eventName, handler.selector, handler.namespace);
-        }, this);
-      }
-
-      _eventsMap[this.cid] = {};
+      this._eventHandlers = {};
       return this;
     }
   };
 
   // Avoid a costly loop through handlers for `undelegateEvents`.
-  var removeEvent = function(d3el, eventName, selector, namespace) {
+  var removeEvent = function(d3el, eventName, selector) {
     var el = selector ? d3el.selectAll(selector) : d3el;
-    el.on(eventName + namespace, null);
+    el.on(eventName, null);
   }
 
   Backbone.D3View = Backbone.View.extend(Backbone.D3ViewMixin);
