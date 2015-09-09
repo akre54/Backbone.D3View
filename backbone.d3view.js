@@ -75,31 +75,54 @@
 
     // `delegate` supports two- and three-arg forms. The `selector` is optional.
     delegate: function(eventName, selector, listener) {
-      var el;
+      var el = this.el;
 
-      if (typeof selector === 'string') {
-        el = selector === '' ? this.d3el : this.d3el.selectAll(selector);
-      } else {
-        el = this.d3el;
+      if (listener === undefined) {
         listener = selector;
         selector = null;
       }
 
-      // d3 needs `uniqueId` to delegate more than one listener per event type.
-      var namespace = '.' + uniqueId++;
-
       var map = _eventsMap[this.cid] || (_eventsMap[this.cid] = {}),
           handlers = map[eventName] || (map[eventName] = []);
 
-      handlers.push({selector: selector, listener: listener, namespace: namespace});
+      handlers.push({selector: selector, listener: listener});
 
-      // The `event` object is stored in `d3.event` but Backbone expects it as
-      // the first argument to the listener.
-      el.on(eventName + namespace, function() {
-        var args = slice.call(arguments);
-        args.unshift(d3.event);
-        listener.apply(this, args);
-      });
+      var ElementProto = (typeof Element !== 'undefined' && Element.prototype) || {};
+      var matchesSelector = ElementProto.matches ||
+        ElementProto.webkitMatchesSelector ||
+        ElementProto.mozMatchesSelector ||
+        ElementProto.msMatchesSelector ||
+        ElementProto.oMatchesSelector ||
+        // Make our own `Element#matches` for IE8
+        function(selector) {
+          // Use querySelectorAll to find all elements matching the selector,
+          // then check if the given element is included in that list.
+          // Executing the query on the parentNode reduces the resulting nodeList,
+          // (document doesn't have a parentNode).
+          var nodeList = (this.parentNode || document).querySelectorAll(selector) || [];
+          return ~indexOf(nodeList, this);
+        };
+
+      el.addEventListener(eventName, function(event){
+        var node = event.target,
+            idx = 0,
+            o = d3.event;
+
+        d3.event = event;
+        // The `event` object is stored in `d3.event` but Backbone expects it as
+        // the first argument to the listener.
+        if(! selector){
+          listener.apply(this, [d3.event, node.__data__, idx++]);
+          return;
+        }
+        while(node && node !== el){
+          if(matchesSelector.call(node, selector)){
+            listener.apply(this, [d3.event, node.__data__, idx++]);
+          }
+          node = node.parentNode;
+        }
+        d3.event = o;
+      }.bind(this));
       return this;
     },
 
@@ -118,7 +141,7 @@
             (selector ? handler.selector === selector : true);
         })
         .forEach(function(handler) {
-          removeEvent(this.d3el, eventName, selector || handler.selector, handler.namespace);
+          removeEvent(this.d3el, eventName, selector || handler.selector);
           handlers.splice(_.indexOf(handlers, handler), 1);
         }, this);
     },
@@ -130,7 +153,7 @@
 
       for (var eventName in map) {
         _.each(map[eventName], function(handler) {
-          removeEvent(this.d3el, eventName, handler.selector, handler.namespace);
+          removeEvent(this.d3el, eventName, handler.selector);
         }, this);
       }
 
@@ -140,9 +163,9 @@
   };
 
   // Avoid a costly loop through handlers for `undelegateEvents`.
-  var removeEvent = function(d3el, eventName, selector, namespace) {
+  var removeEvent = function(d3el, eventName, selector) {
     var el = selector ? d3el.selectAll(selector) : d3el;
-    el.on(eventName + namespace, null);
+    el.on(eventName, null);
   }
 
   Backbone.D3View = Backbone.View.extend(Backbone.D3ViewMixin);
