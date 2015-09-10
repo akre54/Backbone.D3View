@@ -1,4 +1,4 @@
-// Backbone.D3View.js 0.3.0
+// Backbone.D3View.js 0.3.1
 // ---------------
 
 //     (c) 2015 Adam Krebs
