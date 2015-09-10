@@ -102,46 +102,48 @@
         d3.event = o;
       };
 
-      var handlers = this._domEvents || (this._domEvents = []);
-      handlers.push({eventName: eventName, selector: selector, listener: listener, wrapped: wrapped});
+      var map = this._domEvents || (this._domEvents = {});
+      var handlers = map[eventName] || (map[eventName] = []);
+      handlers.push({selector: selector, listener: listener, wrapped: wrapped});
 
       this.el.addEventListener(eventName, wrapped, false);
       return this;
     },
 
     undelegate: function(eventName, selector, listener) {
-      if (!this._domEvents) return;
+      if (!this._domEvents || !this._domEvents[eventName]) return;
 
       if (typeof selector !== 'string') {
         listener = selector;
         selector = null;
       }
 
-      var handlers = this._domEvents.slice();
+      var handlers = this._domEvents[eventName].slice();
       var i = handlers.length;
       while (i--) {
         var handler = handlers[i];
 
-        var match = handler.eventName === eventName &&
-            (listener ? handler.listener === listener : true) &&
+        var match = (listener ? handler.listener === listener : true) &&
             (selector ? handler.selector === selector : true);
 
         if (!match) continue;
 
         this.el.removeEventListener(eventName, handler.wrapped, false);
-        this._domEvents.splice(i, 1);
+        this._domEvents[eventName].splice(i, 1);
       }
     },
 
     undelegateEvents: function() {
-      var handlers = this._domEvents, el = this.el;
-      if (!el || !handlers) return;
+      var map = this._domEvents, el = this.el;
+      if (!el || !map) return;
 
-      handlers.forEach(function(handler) {
-        el.removeEventListener(handler.eventName, handler.wrapped, false);
+      Object.keys(map).forEach(function(eventName) {
+        map[eventName].forEach(function(handler) {
+          el.removeEventListener(eventName, handler.wrapped, false);
+        });
       });
 
-      this._domEvents = [];
+      this._domEvents = {};
       return this;
     }
   };
