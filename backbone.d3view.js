@@ -7,36 +7,21 @@
 //     https://github.com/akre54/Backbone.D3View
 
 (function (factory) {
-  if (typeof define === 'function' && define.amd) { define(['backbone', 'd3', '_'], factory);
-  } else if (typeof exports === 'object') { module.exports = factory(require('backbone'), require('d3'), require('underscore'));
-  } else { factory(Backbone, d3, _); }
-}(function (Backbone, d3, _) {
+  if (typeof define === 'function' && define.amd) { define(['backbone', 'd3'], factory);
+  } else if (typeof exports === 'object') { module.exports = factory(require('backbone'), require('d3'));
+  } else { factory(Backbone, d3); }
+}(function (Backbone, d3) {
 
   // Cached regex to match an opening '<' of an HTML tag, possibly left-padded
   // with whitespace.
   var paddedLt = /^\s*</;
-
-  // Cache array methods for later use.
-  var slice = [].slice;
-
-  // Events need a unique id for attaching multiple events of the same type.
-  var uniqueId = 0;
 
   var ElementProto = (typeof Element !== 'undefined' && Element.prototype) || {};
   var matchesSelector = ElementProto.matches ||
     ElementProto.webkitMatchesSelector ||
     ElementProto.mozMatchesSelector ||
     ElementProto.msMatchesSelector ||
-    ElementProto.oMatchesSelector ||
-    // Make our own `Element#matches` for IE8
-    function(selector) {
-      // Use querySelectorAll to find all elements matching the selector,
-      // then check if the given element is included in that list.
-      // Executing the query on the parentNode reduces the resulting nodeList,
-      // (document doesn't have a parentNode).
-      var nodeList = (this.parentNode || document).querySelectorAll(selector) || [];
-      return ~indexOf(nodeList, this);
-    };
+    ElementProto.oMatchesSelector;
 
   Backbone.D3ViewMixin = {
 
@@ -87,15 +72,13 @@
 
     // `delegate` supports two- and three-arg forms. The `selector` is optional.
     delegate: function(eventName, selector, listener) {
-      var el = this.el;
-
       if (listener === undefined) {
         listener = selector;
         selector = null;
       }
 
       var view = this;
-      var wrapped = function(event){
+      var wrapped = function(event) {
         var node = event.target,
             idx = 0,
             o = d3.event;
@@ -110,7 +93,7 @@
           return;
         }
 
-        while (node && node !== el){
+        while (node && node !== view.el) {
           if (matchesSelector.call(node, selector)) {
             listener.call(view, d3.event, node.__data__, idx++);
           }
@@ -122,7 +105,7 @@
       var handlers = this._domEvents || (this._domEvents = []);
       handlers.push({eventName: eventName, selector: selector, listener: listener, wrapped: wrapped});
 
-      el.addEventListener(eventName, wrapped, false);
+      this.el.addEventListener(eventName, wrapped, false);
       return this;
     },
 
